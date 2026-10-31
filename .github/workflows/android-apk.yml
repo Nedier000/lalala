@@ -6,6 +6,7 @@ on:
     paths:
       - "AOV_HOK_Studio_Android_alpha01.zip"
       - ".github/workflows/android-apk.yml"
+      - "sm4.py"
 
 jobs:
   build:
@@ -44,7 +45,6 @@ jobs:
         run: |
           python --version
           python3 --version
-          command -v python3.13 || true
           python3.13 --version
 
       - name: Extract Android project
@@ -59,6 +59,23 @@ jobs:
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
           ls -la "$PROJECT_DIR"
+
+      - name: Patch Android Python dependencies
+        run: |
+          PYTHON_DIR="$PROJECT_DIR/app/src/main/python"
+          test -d "$PYTHON_DIR"
+          cp sm4.py "$PYTHON_DIR/sm4.py"
+          sed -i '/install("sm4==1.0.2")/d' "$PROJECT_DIR/app/build.gradle.kts"
+          echo "Bundled pure-Python SM4 module:"
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, "sm4.py")
+          from pathlib import Path
+          p = Path("sm4.py")
+          compile(p.read_text(), str(p), "exec")
+          print("SM4 source syntax OK")
+          PY
+          grep -n 'sm4\|pycryptodome' "$PROJECT_DIR/app/build.gradle.kts" || true
 
       - name: Build debug APK
         run: |
