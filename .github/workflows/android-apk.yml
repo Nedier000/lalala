@@ -66,6 +66,10 @@ jobs:
           test -d "$PYTHON_DIR"
           cp sm4.py "$PYTHON_DIR/sm4.py"
           sed -i '/install("sm4==1.0.2")/d' "$PROJECT_DIR/app/build.gradle.kts"
+          # Runtime import required by UnityPy_AOV TypeTreeHelper.
+          if ! grep -q 'install("tabulate")' "$PROJECT_DIR/app/build.gradle.kts"; then
+            sed -i '/install("pycryptodome==3.21.0")/a\            install("tabulate")' "$PROJECT_DIR/app/build.gradle.kts"
+          fi
           # Android TextView exposes setSingleLine as a method, not a writable Kotlin property.
           sed -i 's/^[[:space:]]*singleLine = true$/            setSingleLine(true)/' "$PROJECT_DIR/app/src/main/java/com/aov/studio/MainActivity.kt"
           echo "Bundled pure-Python SM4 module:"
