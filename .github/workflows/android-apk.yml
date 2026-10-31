@@ -22,25 +22,25 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: |
-            platform-tools
-            platforms;android-36
-            build-tools;36.0.0
+
+      - name: Install required Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Extract Android project
         run: |
           mkdir -p _android_src
           unzip -q AOV_HOK_Studio_Android_alpha01.zip -d _android_src
           echo "Project Gradle files:"
-          find _android_src -maxdepth 5 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts \) -print
+          find _android_src -maxdepth 6 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts \) -print
 
       - name: Build debug APK
         run: |
           WRAPPER="$(find _android_src -type f -name gradlew -print -quit)"
           if [ -z "$WRAPPER" ]; then
             echo "Gradle wrapper not found in uploaded ZIP."
-            find _android_src -maxdepth 5 -type f | head -100
+            find _android_src -maxdepth 6 -type f | head -100
             exit 1
           fi
           PROJECT_DIR="$(dirname "$WRAPPER")"
