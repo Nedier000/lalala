@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "AOV_HOK_Studio_Android/**"
+      - "AOV_HOK_Studio_Android_alpha01.zip"
       - ".github/workflows/android-apk.yml"
 
 jobs:
@@ -20,22 +20,27 @@ jobs:
           java-version: "17"
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+      - name: Extract Android project
+        run: |
+          mkdir -p _android_src
+          unzip -q AOV_HOK_Studio_Android_alpha01.zip -d _android_src
+          echo "Extracted project files:"
+          find _android_src -maxdepth 4 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts \) -print
       - name: Build debug APK
         run: |
-          if [ -f ./gradlew ]; then
-            chmod +x ./gradlew
-            ./gradlew assembleDebug
-          elif [ -f ./AOV_HOK_Studio_Android/gradlew ]; then
-            cd AOV_HOK_Studio_Android
-            chmod +x ./gradlew
-            ./gradlew assembleDebug
-          else
-            echo "Gradle wrapper not found. Android project is not present in repository."
+          WRAPPER="$(find _android_src -type f -name gradlew -print -quit)"
+          if [ -z "$WRAPPER" ]; then
+            echo "Gradle wrapper not found in uploaded ZIP."
+            find _android_src -maxdepth 4 -type f | head -100
             exit 1
           fi
+          PROJECT_DIR="$(dirname "$WRAPPER")"
+          cd "$PROJECT_DIR"
+          chmod +x ./gradlew
+          ./gradlew --no-daemon assembleDebug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: AoV-HOK-Studio-debug-apk
-          path: "**/build/outputs/apk/debug/*.apk"
+          path: "_android_src/**/build/outputs/apk/debug/*.apk"
           if-no-files-found: error
