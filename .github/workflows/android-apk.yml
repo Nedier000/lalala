@@ -13,25 +13,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          cmdline-tools-version: "16.0"
-          packages: "platform-tools platforms;android-36 build-tools;36.0.0"
-          accept-android-sdk-licenses: true
-          log-accepted-android-sdk-licenses: false
-          tools: false
+          packages: |
+            platform-tools
+            platforms;android-36
+            build-tools;36.0.0
+
       - name: Extract Android project
         run: |
           mkdir -p _android_src
           unzip -q AOV_HOK_Studio_Android_alpha01.zip -d _android_src
           echo "Project Gradle files:"
           find _android_src -maxdepth 5 \( -name gradlew -o -name settings.gradle -o -name settings.gradle.kts \) -print
+
       - name: Build debug APK
         run: |
           WRAPPER="$(find _android_src -type f -name gradlew -print -quit)"
@@ -44,6 +47,7 @@ jobs:
           cd "$PROJECT_DIR"
           chmod +x ./gradlew
           ./gradlew --no-daemon assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
