@@ -23,6 +23,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Set up host Python 3.13 for Chaquopy
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
       - name: Install Gradle 8.13
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -34,6 +39,13 @@ jobs:
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Verify host Python
+        run: |
+          python --version
+          python3 --version
+          command -v python3.13 || true
+          python3.13 --version
 
       - name: Extract Android project
         run: |
